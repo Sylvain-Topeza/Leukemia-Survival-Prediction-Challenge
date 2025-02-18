@@ -14,7 +14,7 @@ The dataset consists of:
 - **Molecular Data**: Genetic mutations specific to cancerous cells.
 - **Survival Data**: OS time in years and survival status (event/censoring).
 
-🔗 [Challenge page link](https://challengedata.ens.fr/participants/challenges/162/)
+🔗 [Challenge page link](https://challengedata.ens.fr/challenges/162)
 
 ---
 
