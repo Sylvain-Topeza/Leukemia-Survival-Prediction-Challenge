@@ -1,111 +1,81 @@
-# Leukemia Survival Prediction Challenge (QRT)
+# 🔬 Overall Survival Prediction for Patients with Myeloid Leukemia
 
-## 📌 Overview  
-This project implements a **survival analysis model** for leukemia patients using **clinical and genomic data**.  
-The goal is to predict **overall survival (OS)** from diagnosis, leveraging **machine learning & deep learning techniques**.  
-This challenge is part of the **Qube Research & Technologies (QRT) Data Challenge**.
+## 📌 Challenge Overview
 
----
+This project is part of a data science challenge aimed at predicting **overall survival (OS) time** for patients diagnosed with **myeloid leukemia** based on **clinical and molecular data**. 
 
-## ⚙️ Features  
-### 1️⃣ **Data Preprocessing & Feature Engineering**  
-- **Clinical Data Processing**: Standardization & imputation of missing values.  
-- **Genomic Data Processing**: Mutation aggregation & feature extraction.  
-- **Text-Based Embeddings**: **BioBERT embeddings** for cytogenetics interpretation.  
-- **Dimensionality Reduction**: PCA applied to genomic features.  
+The goal is to develop models that estimate survival probabilities, which can help clinicians personalize treatment plans for patients. Accurate predictions of overall survival can assist in:
 
-### 2️⃣ **Survival Analysis Models**  
-- **Coxnet Survival Model**: LASSO-regularized Cox model for feature selection.  
-- **Random Survival Forest (RSF)**: Captures non-linear interactions between variables.  
-- **Gradient Boosting Survival Analysis (GBSA)**: Boosting-based survival modeling.  
-- **DeepSurv Neural Network**: A deep learning model optimized for survival data.  
-- **Stacked Meta-Model**: Combines multiple models for enhanced predictions.  
+- Identifying **low-risk patients** who may receive less intensive therapies.
+- Identifying **high-risk patients** who may require aggressive treatments such as **hematopoietic stem cell transplantation**.
 
-### 3️⃣ **Performance Metrics & Evaluation**  
-- **Concordance Index (C-Index)**: Evaluates model discrimination ability.  
-- **Integrated Brier Score (IBS)**: Measures calibration & accuracy of survival predictions.  
-- **Kaplan-Meier Curves**: Visualizes survival probability distributions.  
+The dataset consists of:
+- **Clinical Data**: Blood biomarkers, hematological values, and patient demographics.
+- **Molecular Data**: Genetic mutations specific to cancerous cells.
+- **Survival Data**: OS time in years and survival status (event/censoring).
 
-### 4️⃣ **Submission File Generation**  
-- **Final predictions saved as**: `submission_stacked_meta_advanced.csv`  
-- **Format**: Patient IDs & predicted survival risk scores for test data.  
+🔗 [Challenge page link](https://challengedata.ens.fr/participants/challenges/162/)
 
 ---
 
-## 📊 Methodology  
+## 🚀 Features and Methodology
 
-### **Step 1: Data Collection & Cleaning**  
-The dataset consists of:  
-✅ **Clinical features** (blood tests, demographics, cytogenetics).  
-✅ **Genomic features** (mutation types, variant allele frequencies).  
-✅ **Survival outcome** (OS_YEARS, OS_STATUS).  
+### **1. Data Processing**
+- **Merging Clinical and Molecular Data**: The dataset is structured such that clinical and molecular data are merged using a unique `ID` per patient.
+- **Mutation Aggregation**: Summary statistics such as **mutation count, mean Variant Allele Frequency (VAF), max VAF, and VAF standard deviation** are computed for each patient.
+- **Feature Engineering**: Additional features are created, including:
+  - **Ratio of Absolute Neutrophil Count (ANC) to White Blood Cell Count (WBC)**.
+  - **ANC * WBC interaction term**.
+  - **Cytogenetic Markers** such as **monosomy 7 presence** and **complex karyotype identification**.
 
-### **Step 2: Feature Engineering**  
-- **Standardization**: Normalizing numerical features for better model performance.  
-- **Missing Data Handling**: Imputation techniques for missing values.  
-- **BioBERT for Text Processing**: Generating embeddings from cytogenetics reports.  
-- **Dimensionality Reduction**: PCA for reducing high-dimensional genomic data.  
+### **2. Text Embedding Extraction for Cytogenetics**
+- **Using BioBERT**: The `CYTOGENETICS` column (textual cytogenetic descriptions) is converted into numerical embeddings using **BioBERT**.
+- **Dimensionality Reduction (PCA)**: The BioBERT embeddings are compressed into **10 principal components** for model compatibility.
 
-### **Step 3: Model Training & Validation**  
-Each survival model is trained and evaluated using:  
-✅ **5-Fold Cross-Validation** for robust performance estimation.  
-✅ **Hyperparameter Tuning** via GridSearch & Bayesian Optimization.  
-✅ **Model Stacking** to improve predictive accuracy.  
+### **3. Survival Modeling**
+Several models are used for survival prediction:
 
-### **Step 4: Final Prediction & Submission**  
-- The best model (Stacked Meta-Model) generates survival risk predictions.  
-- Predictions are formatted into `submission_stacked_meta_advanced.csv`.  
+- **Cox Proportional Hazards Model (Coxnet)**: Regularized Cox model with **elastic net penalty** to manage feature selection and multicollinearity.
+  - `l1_ratio=0.5` (compromise between L1 and L2 regularization).
+  - `alphas=np.logspace(-4, 0, 100)` (range of penalization strengths).
 
----
+- **Random Survival Forest (RSF)**: Ensemble-based model capturing **non-linear interactions** between covariates.
+  - `n_estimators=250` (number of trees for stability).
+  - `max_features='sqrt'` (reduces overfitting by limiting available features per split).
 
-## **🔍 Example Results**  
+- **Gradient Boosting Survival Analysis (GBSA)**: Gradient boosting approach for survival tasks.
+  - `n_estimators=300`, `learning_rate=0.01` (prevents overfitting while converging smoothly).
+  - `max_depth=4` (moderate tree depth to prevent overfitting).
 
-### **1️⃣ Data Distribution & Feature Importance**  
-![Feature Importance](results/feature_importance.png)  
+- **DeepSurv (Neural Network for Survival Analysis)**: Deep learning model learning complex survival patterns.
+  - Three **Dense layers (128, 64, 32 neurons)** with **Dropout (40%)**.
+  - Optimized using **Adam optimizer** and a **custom survival loss function**.
 
-This shows the top **clinical & genomic** predictors of survival.
-
-### **2️⃣ Kaplan-Meier Survival Curves**  
-![KM Curves](results/km_curves.png)  
-
-Visualizing survival probability across risk groups.
-
-### **3️⃣ Concordance Index (C-Index) Comparison**  
-![C-Index](results/c_index.png)  
-
-Model | C-Index  
-------|---------  
-Coxnet | 0.72  
-Random Survival Forest | 0.74  
-Gradient Boosting | 0.76  
-DeepSurv | 0.78  
-Stacked Model | **0.81**  
-
-✅ The **Stacked Meta-Model** achieves the **highest C-Index**, outperforming individual models.  
+### **4. Model Stacking & Meta-Modeling**
+- **Stacking Approach**: Risk scores from all models are stacked to form a meta-feature matrix.
+- **Meta-Model (Neural Network)**: A fully connected neural network (2 hidden layers, **Dropout 30%**) is trained on the stacked predictions to optimize the final survival prediction.
 
 ---
 
-## 📂 Data Source & Customization  
-The dataset is **not publicly available** due to privacy regulations.  
-However, users can modify the pipeline to apply it to **other survival datasets**.
+## 🛠 Installation & Execution
 
----
-
-## 🖥️ Installation & Setup  
-
-1️⃣ **Clone the repository**  
+### **Prerequisites**
+This project requires **Python 3.8+** and the following dependencies:
 ```bash
-  git clone https://github.com/yourusername/Leukemia-Survival-Prediction-Challenge.git
-  cd Leukemia-Survival-Prediction-Challenge
+pip install pandas numpy scikit-learn transformers torch tensorflow sksurv
 ```
 
-2️⃣ **Install dependencies**
-Requires Python 3.8+ and the following libraries:
+### **Run the Code**
+1. Place the dataset files (`clinical_X_train.csv`, `molecular_X_train.csv`, `y_train.csv`, `clinical_X_test.csv`, `molecular_X_test.csv`) in the project directory.
+2. Execute the main script:
 ```bash
-  pip install numpy pandas matplotlib scikit-learn lifelines xgboost torch transformers
+python challenge_v6.py
 ```
+3. The final submission file **`submission_stacked_meta_advanced.csv`** will be generated.
 
-3️⃣ **Run the project**  
-```bash
-  python main.py
-```
+---
+
+## 📌 Potential Improvements
+- **Hyperparameter Optimization** (e.g., GridSearch for RSF, GBSA)
+- **Data Augmentation** for clinical data (synthetic generation, missing data imputation)
+- **Additional NLP models** (SciBERT for better text feature extraction)
