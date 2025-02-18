@@ -66,12 +66,12 @@ pip install pandas numpy scikit-learn transformers torch tensorflow sksurv
 ```
 
 ### **Run the Code**
-1. Place the dataset files (`clinical_X_train.csv`, `molecular_X_train.csv`, `y_train.csv`, `clinical_X_test.csv`, `molecular_X_test.csv`) in the project directory.
+1. Download the dataset files(`clinical_X_train.csv`, `molecular_X_train.csv`, `y_train.csv`, `clinical_X_test.csv`, `molecular_X_test.csv`) from the [challenge website](https://challengedata.ens.fr/challenges/162) and place them in the project directory
 2. Execute the main script:
 ```bash
 python challenge_v6.py
 ```
-3. The final submission file **`submission_stacked_meta_advanced.csv`** will be generated.
+3. The final submission file **`challenge_submission.csv`** will be generated.
 
 ---
 
